@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Secure QR Generator</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+</head>
+
+
+<body style="font-family: Arial; padding:20px; background:#f2f2f2">
+
+
+<h2>Secure QR Generator</h2>
+
+<textarea id="msg"
+rows="8"
+style="width:100%; padding:10px; font-size:16px"
+placeholder="Type or paste your message here"></textarea>
+
+
+<br><br>
+
+
+<button onclick="generate()"
+style="width:100%; padding:14px; font-size:16px; background:#007bff; color:white; border:none; border-radius:6px">
+Generate QR
+</button>
+
+
+<br><br>
+
+
+<button onclick="clearText()"
+style="width:100%; padding:12px; font-size:15px; background:#888; color:white; border:none; border-radius:6px">
+Clear
+</button>
+
+
+<br><br>
+
+
+<div style="text-align:center">
+<canvas id="qrcode"></canvas>
+</div>
+
+
+<script>
+
+function clearText(){
+
+document.getElementById("msg").value = ""
+
+}
+
+
+
+function generate(){
+
+let text = document.getElementById("msg").value
+
+if(text.length === 0){
+alert("Enter a message first")
+return
+}
+
+
+// compress message
+let compressed = pako.deflate(text)
+
+
+// convert to CryptoJS format
+let wordArray = CryptoJS.lib.WordArray.create(compressed)
+
+
+// key from APK
+let key = CryptoJS.enc.Utf8.parse("a73f90fwf0w92@#9")
+
+
+// IV from APK
+let iv = CryptoJS.enc.Utf8.parse("snerojhf8$31u&(&")
+
+
+// AES CTR encryption
+let encrypted = CryptoJS.AES.encrypt(
+wordArray,
+key,
+{
+iv: iv,
+mode: CryptoJS.mode.CTR,
+padding: CryptoJS.pad.NoPadding
+}
+)
+
+
+// convert to Base64
+let result = encrypted.ciphertext.toString(CryptoJS.enc.Base64)
+
+
+// copy encrypted string automatically
+navigator.clipboard.writeText(result)
+
+
+// generate QR
+QRCode.toCanvas(
+document.getElementById("qrcode"),
+result,
+{
+width: 300
+}
+)
+
+}
+
+</script>
+
+</body>
+</html>
